@@ -9,25 +9,11 @@
 }
 
 .images{
-  position: relative;
+  display: flex;
+  /* flex: 1; */
+  transition: all 0.5s;
 }
 
 .images > img {
-  position: absolute;
-  transition: all 0.3s;
-}
-
-.images > img.current {
-  left: 0;
-  transform: translateX(0);
-  z-index: 1;
-}
-
-.images > img.leave {
-  transform: translateX(-100%);
-  z-index: 1;
-}
-
-.images > img.enter {
-  transform: translateX(100%);
+  width: 100%;
 }

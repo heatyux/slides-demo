@@ -1,76 +1,85 @@
-// $('.images > img:nth-child(1)').addClass('current');
-// $('.images > img:nth-child(2)').addClass('enter');
-// $('.images > img:nth-child(3)').addClass('enter');
-var n = 1
-initialize(getImage(n));
+let $slides = $('#slides');
+let $buttons = $('#buttonWrapper > button')
+let current = 0;
+let $images = $slides.children('img');
 
-let timer = setInterval(() => {
-  makeLeave(getImage(n))
-    .one('transitionend', (e) => { //只执行一次
-      makeEnter($(e.currentTarget));
-    })
-  makeCurrent(getImage(n + 1));
-  n += 1;
-}, 3000);
+makeFakeSlides();
+$slides.css({transform: 'translateX(-400px)'});
+bindEvents();
 
+
+$(next).on('click', function() {
+  goToSlides(current + 1);
+})
+
+$(previous).on('click', function() {
+  goToSlides(current - 1);
+})
+
+let timer = setInterval(function() {
+  goToSlides(current + 1)
+}, 2000)
+
+$('.container').on('mouseenter', function() {
+  window.clearInterval(timer);
+}).on('mouseleave', function() {
+    timer = setInterval(function() {
+      goToSlides(current + 1)
+    }, 2000)
+})
+
+// 控制页面 隐藏时暂停
 $(document).on('visibilitychange', function() {
-  if(document.hidden){
-    // console.log(document.hidden)
+  if(document.hidden) {
     window.clearInterval(timer)
   }else {
-    timer = setInterval(() => {
-      makeLeave(getImage(n))
-        .one('transitionend', (e) => { //只执行一次
-          makeEnter($(e.currentTarget));
-        })
-      makeCurrent(getImage(n + 1));
-      n += 1;
-    }, 3000);
+    timer = setInterval(function() {
+      goToSlides(current + 1)
+    }, 2000)
   }
-});
+})
 
+function bindEvents() {
+  $(buttonWrapper).on('click', 'button', function(e) {
+    let $button = $(e.currentTarget);
+    let index = $button.index();
+    goToSlides(index);
+  })
+}
 
-
-
-
-
-
-
-var images = $('.images > img').length; // 获取 'img' 数量
-function x(n) {
-  if(n > images) {
-    n = n % images
-    if(n === 0) {
-      n = images
-    }
+function goToSlides(index){
+  if(index > $buttons.length - 1) {
+    index = 0;
+  }else if (index < 0) {
+    index = $buttons.length - 1;
   }
-  return n;
+
+  if(current === $buttons.length - 1 && index === 0) {
+    // 从最后一张到第一张
+    $slides.css({transform: `translateX(${- ($buttons.length + 1) * 400}px)`}) // -1600
+      .one('transitionend', function() {
+        $slides.hide().offset();
+        $slides.css({transform: `translateX(${- (index + 1) * 400}px)`}).show();
+      })
+  } else if (current === 0 && index === $buttons.length - 1) {
+    // 从第一张到最后一张
+    $slides.css({transform: `translateX(0px)`})
+      .one('transitionend', function() {
+        $slides.hide().offset();
+        $slides.css({transform: `translateX(${- (index + 1) * 400}px)`}).show();
+      })
+  } else {
+    $slides.css({transform: `translateX(${- (index + 1) * 400}px)`})
+  }
+  current = index;
 }
 
-// 初始化添加状态机
-function initialize($node) {
-  $node.addClass('current')
-    .siblings().addClass('enter');
-}
 
-// 获得节点
-function getImage(n) {
-  // return $('.images > img:nth-child('+ n + ')');
-  return $(`.images > img:nth-child(${x(n)})`)
-}
-
-// 添加 'current' 状态
-function makeCurrent($node) {
-  return $node.removeClass('enter leave').addClass('current');
-}
-
-// 添加 'leave' 状态
-function makeLeave($node) {
-  $node.removeClass('current enter').addClass('leave')
-  return $node; //重点的精髓
-}
-
-// 添加 'enter' 状态
-function makeEnter($node) {
-  return $node.removeClass('leave current').addClass('enter')
+function makeFakeSlides() {
+  let $firstCopy = $images.eq(0).clone(true);
+  let $lastCopy = $images.eq($images.length - 1).clone(true);
+  // console.log($firstCopy[0].outerHTML)
+  // console.log($lastCopy[0].outerHTML)
+  $slides.append($firstCopy);
+  $slides.prepend($lastCopy);
 }
